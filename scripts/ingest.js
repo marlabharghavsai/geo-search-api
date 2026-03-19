@@ -1,3 +1,5 @@
+require("dotenv").config(); // ✅ IMPORTANT
+
 const fs = require("fs");
 const { Client } = require("pg");
 const axios = require("axios");
@@ -5,17 +7,20 @@ const axios = require("axios");
 const data = JSON.parse(fs.readFileSync("scripts/data.json"));
 
 const pgClient = new Client({
-  user: "postgres",
-  host: "localhost",
-  database: "properties_db",
-  password: "postgres",
+  user: process.env.POSTGRES_USER || "postgres",
+  host: process.env.DB_HOST || "localhost",
+  database: process.env.POSTGRES_DB || "properties_db",
+  password: process.env.POSTGRES_PASSWORD || "postgres",
   port: 5432,
 });
+
+const OPENSEARCH_URL =
+  process.env.OPENSEARCH_URL || "http://localhost:9200";
 
 async function ingest() {
   await pgClient.connect();
 
-  console.log("📥 Inserting into PostgreSQL (batch)...");
+  console.log("📥 Inserting into PostgreSQL...");
 
   const batchSize = 1000;
 
@@ -50,7 +55,7 @@ async function ingest() {
     console.log(`✅ Inserted ${i + batch.length}`);
   }
 
-  console.log("📥 Indexing into OpenSearch (bulk)...");
+  console.log("📥 Indexing into OpenSearch...");
 
   const osBatchSize = 2000;
 
@@ -68,16 +73,14 @@ async function ingest() {
 
       bulkBody += JSON.stringify({
         price: item.price,
-        location: { lat: item.lat, lon: item.lon },
+        location: [item.lon, item.lat], // ✅ correct
         date_of_transfer: item.date_of_transfer,
         views: item.views
       }) + "\n";
     });
 
-    await axios.post("http://localhost:9200/_bulk", bulkBody, {
-      headers: {
-        "Content-Type": "application/x-ndjson"
-      }
+    await axios.post(`${OPENSEARCH_URL}/_bulk`, bulkBody, {
+      headers: { "Content-Type": "application/x-ndjson" }
     });
 
     console.log(`✅ Indexed ${i + batch.length}`);
