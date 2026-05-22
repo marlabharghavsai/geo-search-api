@@ -1,0 +1,16 @@
+{
+  "name": "geo-spatial-search-api",
+  "version": "1.0.0",
+  "description": "Geo-spatial search API with OpenSearch and PostGIS",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "ingest": "node scripts/ingest.js"
+  },
+  "dependencies": {
+    "@opensearch-project/opensearch": "^2.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pg": "^8.11.3"
+  }
+}
