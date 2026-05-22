@@ -1,2 +1,3 @@
 "Refactor checkpoint 1" 
 "Refactor checkpoint 2" 
+"Refactor checkpoint 3" 
